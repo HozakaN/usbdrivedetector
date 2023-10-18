@@ -53,7 +53,7 @@ public class OSXStorageDeviceDetector extends AbstractStorageDeviceDetector {
 
     private static final int MACOSX_MOUNTAINLION = 8;
 
-    private int macosVersion = -1;
+    private MacOsVersion macOsVersion = null;
 
     protected OSXStorageDeviceDetector(final CommandExecutor commandExecutor) {
         super(commandExecutor);
@@ -61,14 +61,10 @@ public class OSXStorageDeviceDetector extends AbstractStorageDeviceDetector {
         final String version = OSUtils.getOsVersion();
         final String[] versionParts = version.split("\\.");
 
-        if (versionParts.length > 1) {
-        	try{
-        		macosVersion = Integer.parseInt(versionParts[0]);
-        	}
-        	catch (NumberFormatException nfe) {
-        		log.error(nfe.getMessage(), nfe);
-        	}
-        }
+	macOsVersion = MacOsVersion.fromVersion(version);
+	if (macOsVersion == null) {
+		log.error("Unsupported macOs version : " + version, null);
+	}
 
     }
 
@@ -77,7 +73,7 @@ public class OSXStorageDeviceDetector extends AbstractStorageDeviceDetector {
     public List<USBStorageDevice> getStorageDevices() {
         final ArrayList<USBStorageDevice> listDevices = new ArrayList<>();
 
-        if (macosVersion >= MACOSX_MOUNTAINLION){
+        if (macOsVersion.versionCodePrefix >= MacOsVersion.MountainLion.versionCodePrefix){
         	try (final OutputProcessor commandOutputProcessor = commandExecutor.executeCommand(CMD_DF)) {
 
 				commandOutputProcessor.processOutput((String outputLine) -> {
@@ -159,4 +155,66 @@ public class OSXStorageDeviceDetector extends AbstractStorageDeviceDetector {
 
 		return disk;
 	}
+
+	private enum MacOsVersion {
+	        Tiger("10.4"),
+	        Leopard("10.5"),
+	        SnowLeopard("10.6"),
+	        Lion("10.7"),
+	        MountainLion("10.8"),
+	        Mavericks("10.9"),
+	        Yosemite("10.10"),
+	        ElCapitan("10.11"),
+	        Sierra("10.12"),
+	        HighSierra("10.13"),
+	        Mojave("10.14"),
+	        Catalina("10.15"),
+	        BigSur("11"),
+	        Monterey("12"),
+	        Ventura("13"),
+	        Sonoma("14");
+	
+	        public final String versionCodePrefix;
+	
+	        MacOsVersion(String versionCodePrefix) {
+	            this.versionCodePrefix = versionCodePrefix;
+	        }
+	
+	        public static MacOsVersion fromVersion(String version) {
+	            if (version.startsWith(Tiger.versionCodePrefix)) {
+	                return Tiger;
+	            } else if (version.startsWith(Leopard.versionCodePrefix)) {
+	                return Leopard;
+	            } else if (version.startsWith(SnowLeopard.versionCodePrefix)) {
+	                return SnowLeopard;
+	            } else if (version.startsWith(Lion.versionCodePrefix)) {
+	                return Lion;
+	            } else if (version.startsWith(MountainLion.versionCodePrefix)) {
+	                return MountainLion;
+	            } else if (version.startsWith(Mavericks.versionCodePrefix)) {
+	                return Mavericks;
+	            } else if (version.startsWith(Yosemite.versionCodePrefix)) {
+	                return Yosemite;
+	            } else if (version.startsWith(ElCapitan.versionCodePrefix)) {
+	                return ElCapitan;
+	            } else if (version.startsWith(Sierra.versionCodePrefix)) {
+	                return Sierra;
+	            } else if (version.startsWith(HighSierra.versionCodePrefix)) {
+	                return HighSierra;
+	            } else if (version.startsWith(Mojave.versionCodePrefix)) {
+	                return Mojave;
+	            } else if (version.startsWith(Catalina.versionCodePrefix)) {
+	                return Catalina;
+	            } else if (version.startsWith(BigSur.versionCodePrefix)) {
+	                return BigSur;
+	            } else if (version.startsWith(Monterey.versionCodePrefix)) {
+	                return Monterey;
+	            } else if (version.startsWith(Ventura.versionCodePrefix)) {
+	                return Ventura;
+	            } else if (version.startsWith(Sonoma.versionCodePrefix)) {
+	                return Sonoma;
+	            }
+	            return null;
+	        }
+    }
 }
